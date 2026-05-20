@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../lib/api";
-import type { Exercise, ExerciseResult } from "../../types";
+import type { Exercise } from "../../types";
 import { ChevronRight, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -16,36 +16,36 @@ interface ExercisePanelProps {
   onScoreUpdate?: (score: number) => void;
 }
 
+interface SubmitResult {
+  isCorrect: boolean;
+  correctAnswer: string;
+  explanation: string | null;
+  grammarAnalysis: string | null;
+}
+
 export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
-  const [submittedIds, setSubmittedIds] = useState<Set<number>>(new Set());
-  const queryClient = useQueryClient();
+  const [submitResults, setSubmitResults] = useState<Record<number, SubmitResult>>({});
 
   const { data: exerciseData, isLoading } = useQuery({
     queryKey: ["exercises", articleId],
     queryFn: () => api.exercises.listForArticle(articleId),
   });
 
-  const { data: resultData } = useQuery({
-    queryKey: ["exerciseResults", articleId],
-    queryFn: () => api.exercises.results(articleId),
-    refetchInterval: false,
-  });
-
-  // Track grammar analysis for each submitted exercise
-  const [grammarInfo, setGrammarInfo] = useState<Record<number, string | null>>({});
-
   const allExercises = exerciseData?.items || [];
   const filtered = activeTab === "all" ? allExercises : allExercises.filter(e => e.type === activeTab);
-  const resultMap = new Map<number, ExerciseResult>();
-  if (resultData?.results) {
-    resultData.results.forEach(r => resultMap.set(r.exerciseId, r));
-  }
+
+  // Calculate score from local submit results
+  const totalAnswered = Object.keys(submitResults).length;
+  const correctCount = Object.values(submitResults).filter(r => r.isCorrect).length;
+  const score = totalAnswered > 0 ? Math.round((correctCount / allExercises.length) * 100) : null;
 
   useEffect(() => {
-    if (resultData && onScoreUpdate) onScoreUpdate(resultData.score);
-  }, [resultData, onScoreUpdate]);
+    if (onScoreUpdate && score != null) {
+      onScoreUpdate(score);
+    }
+  }, [score, onScoreUpdate]);
 
   const types = ["all", ...new Set(allExercises.map(e => e.type))];
 
@@ -54,12 +54,25 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
     if (!answer) return;
     try {
       const result = await api.exercises.submit(exercise.id, answer, articleId);
-      if (result.grammarAnalysis) {
-        setGrammarInfo(prev => ({ ...prev, [exercise.id]: result.grammarAnalysis! }));
-      }
-      setSubmittedIds(prev => new Set([...prev, exercise.id]));
-      queryClient.invalidateQueries({ queryKey: ["exerciseResults", articleId] });
+      setSubmitResults(prev => ({
+        ...prev,
+        [exercise.id]: {
+          isCorrect: result.isCorrect,
+          correctAnswer: result.correctAnswer,
+          explanation: result.explanation,
+          grammarAnalysis: result.grammarAnalysis || null,
+        },
+      }));
     } catch { /* ignore */ }
+  };
+
+  const handleRetry = (exerciseId: number) => {
+    setUserAnswers(prev => ({ ...prev, [exerciseId]: "" }));
+    setSubmitResults(prev => {
+      const next = { ...prev };
+      delete next[exerciseId];
+      return next;
+    });
   };
 
   if (isLoading) {
@@ -77,9 +90,9 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
     <div className="bg-white rounded-xl border">
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h3 className="font-semibold text-gray-900 text-sm">Exercises</h3>
-        {resultData && (
-          <span className={`text-xs font-medium px-2 py-0.5 rounded ${resultData.score >= 60 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-            Score: {resultData.score}%
+        {score != null && (
+          <span className={`text-xs font-medium px-2 py-0.5 rounded ${score >= 60 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            Score: {score}% ({correctCount}/{allExercises.length})
           </span>
         )}
       </div>
@@ -96,8 +109,8 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
       <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
         {filtered.map(exercise => {
           const options: string[] = exercise.options ? JSON.parse(exercise.options) : [];
-          const result = resultMap.get(exercise.id);
-          const isSubmitted = submittedIds.has(exercise.id) || !!result;
+          const result = submitResults[exercise.id];
+          const isSubmitted = !!result;
 
           return (
             <div key={exercise.id} className="border border-gray-100 rounded-lg p-3">
@@ -119,7 +132,7 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
                         const letter = String.fromCharCode(65 + i);
                         const isSelected = userAnswers[exercise.id] === opt;
                         const isCorrectAnswer = result && opt === result.correctAnswer;
-                        const isWrongSelected = result && isSelected && opt !== result.correctAnswer;
+                        const isWrongSelected = result && isSelected && !result.isCorrect;
 
                         let btnClass = "w-full text-left px-2.5 py-1.5 rounded text-sm border ";
                         if (isWrongSelected) {
@@ -158,7 +171,7 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
                         <ChevronRight className="h-3 w-3" /> Submit
                       </button>
                     )}
-                    {isSubmitted && result && (
+                    {isSubmitted && (
                       <div className="flex items-center gap-2">
                         {result.isCorrect ? (
                           <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -169,12 +182,7 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
                           {result.isCorrect ? "Correct!" : `Answer: ${result.correctAnswer}`}
                         </span>
                         <button
-                          onClick={() => {
-                            setUserAnswers(prev => ({ ...prev, [exercise.id]: "" }));
-                            setSubmittedIds(prev => { const next = new Set(prev); next.delete(exercise.id); return next; });
-                            setGrammarInfo(prev => { const next = { ...prev }; delete next[exercise.id]; return next; });
-                            queryClient.invalidateQueries({ queryKey: ["exerciseResults", articleId] });
-                          }}
+                          onClick={() => handleRetry(exercise.id)}
                           className="flex items-center gap-0.5 text-xs text-gray-400 hover:text-gray-600"
                         >
                           <RotateCcw className="h-3 w-3" /> Retry
@@ -185,10 +193,10 @@ export function ExercisePanel({ articleId, onScoreUpdate }: ExercisePanelProps) 
                   {result?.explanation && (
                     <p className="mt-1.5 text-xs text-gray-500 bg-gray-50 p-2 rounded leading-relaxed">{result.explanation}</p>
                   )}
-                  {grammarInfo[exercise.id] && (
+                  {result?.grammarAnalysis && (
                     <div className="mt-1.5 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-800 leading-relaxed">
                       <span className="font-medium">Grammar: </span>
-                      {grammarInfo[exercise.id]}
+                      {result.grammarAnalysis}
                     </div>
                   )}
                 </div>
