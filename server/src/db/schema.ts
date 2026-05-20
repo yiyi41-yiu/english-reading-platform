@@ -159,6 +159,15 @@ export const wrongAnswers = sqliteTable("wrong_answers", {
   createdAt: text("created_at").notNull().default("(datetime('now'))"),
 });
 
+export const grammarHistory = sqliteTable("grammar_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sentence: text("sentence").notNull(),
+  analysis: text("analysis").notNull(), // JSON: GrammarAnalysis
+  articleId: integer("article_id"),
+  createdAt: text("created_at").notNull().default("(datetime('now'))"),
+});
+
 export const aiCache = sqliteTable("ai_cache", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   cacheKey: text("cache_key").notNull().unique(),

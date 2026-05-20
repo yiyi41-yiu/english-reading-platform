@@ -27,7 +27,7 @@ export function ArticleReaderPage() {
   } | null>(null);
   const [selectedText, setSelectedText] = useState<TextSelection | null>(null);
   const [grammarSentence, setGrammarSentence] = useState<string | null>(null);
-  const [showExercises, setShowExercises] = useState(false);
+  const [showExercises, setShowExercises] = useState(true);
   const [score, setScore] = useState<number | null>(null);
   const fetchPet = usePetStore(s => s.fetch);
   const { data: article, isLoading } = useQuery({
@@ -144,9 +144,9 @@ export function ArticleReaderPage() {
         </div>
       </div>
 
-      <div>
+      <div className="flex gap-6">
         {/* Main reading area */}
-        <div className="max-w-3xl">
+        <div className={showExercises ? "w-[60%]" : "w-full"}>
           <BackgroundCard author={article.author} background={article.background} source={article.source} />
 
           {/* Action toolbar */}
@@ -192,23 +192,25 @@ export function ArticleReaderPage() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Exercise section — shown below article when toggled */}
-      {showExercises && (
-        <div className="mt-6 max-w-3xl">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-gray-900">Practice Exercises</h2>
-            <button
-              onClick={() => setShowExercises(false)}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="h-3.5 w-3.5" /> Close Exercises
-            </button>
+        {/* Exercise sidebar */}
+        {showExercises && (
+          <div className="w-[40%]">
+            <div className="sticky top-20">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-gray-900">Practice Exercises</h2>
+                <button
+                  onClick={() => setShowExercises(false)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" /> Close Exercises
+                </button>
+              </div>
+              <ExercisePanel articleId={articleId} onScoreUpdate={setScore} />
+            </div>
           </div>
-          <ExercisePanel articleId={articleId} onScoreUpdate={setScore} />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Comments section */}
       <div className="mt-6 max-w-3xl">

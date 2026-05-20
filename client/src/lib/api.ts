@@ -111,6 +111,14 @@ export const api = {
     remove: (id: number) => request<{ success: boolean }>(`/excerpts/${id}`, { method: "DELETE" }),
   },
 
+  grammar: {
+    list: () => request<{ items: import("../types").GrammarHistoryEntry[] }>("/grammar"),
+    get: (id: number) => request<import("../types").GrammarHistoryEntry>(`/grammar/${id}`),
+    save: (body: { sentence: string; analysis: object; article_id?: number }) =>
+      request<import("../types").GrammarHistoryEntry>("/grammar", { method: "POST", body: JSON.stringify(body) }),
+    remove: (id: number) => request<{ success: boolean }>(`/grammar/${id}`, { method: "DELETE" }),
+  },
+
   ai: {
     translateWord: (word: string, contextSentence: string) =>
       request<import("../types").WordTranslation>("/ai/translate-word", { method: "POST", body: JSON.stringify({ word, context_sentence: contextSentence }) }),

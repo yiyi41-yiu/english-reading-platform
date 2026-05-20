@@ -145,6 +145,15 @@ export interface ParagraphTranslation {
   translation: string;
 }
 
+export interface GrammarHistoryEntry {
+  id: number;
+  userId: number;
+  sentence: string;
+  analysis: GrammarAnalysis;
+  articleId: number | null;
+  createdAt: string;
+}
+
 export interface GrammarAnalysis {
   sentence_type: string;
   clauses: Array<{

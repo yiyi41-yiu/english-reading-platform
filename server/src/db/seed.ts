@@ -150,6 +150,15 @@ sqlite.exec(`
     retried_at TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS grammar_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sentence TEXT NOT NULL,
+    analysis TEXT NOT NULL,
+    article_id INTEGER,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
   // Migrations: add columns that may not exist in older DBs
@@ -234,6 +243,18 @@ sqlite.exec(`
       grammar_analysis TEXT,
       retried INTEGER NOT NULL DEFAULT 0,
       retried_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  // grammar_history table: create if missing
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS grammar_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      sentence TEXT NOT NULL,
+      analysis TEXT NOT NULL,
+      article_id INTEGER,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);

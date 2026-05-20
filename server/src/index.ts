@@ -16,6 +16,7 @@ import { petRouter } from "./routes/pet.js";
 import { commentsRouter } from "./routes/comments.js";
 import { groupsRouter } from "./routes/groups.js";
 import { feedRouter } from "./routes/feed.js";
+import { grammarRouter } from "./routes/grammar.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { dbReady } from "./db/index.js";
 
@@ -44,6 +45,7 @@ app.use("/api/pet", petRouter);
 app.use("/api/comments", commentsRouter);
 app.use("/api/groups", groupsRouter);
 app.use("/api/feed", feedRouter);
+app.use("/api/grammar", grammarRouter);
 
 // Serve static client build in production
 import fs from "fs";

@@ -14,7 +14,14 @@ export function GrammarPanel({ sentence, onClose }: GrammarPanelProps) {
 
   useEffect(() => {
     api.ai.analyzeGrammar(sentence)
-      .then(a => { setAnalysis(a); setLoading(false); })
+      .then(a => {
+        setAnalysis(a);
+        setLoading(false);
+        // Auto-save to history if valid
+        if (a && (a.sentence_type || a.clauses.length > 0 || a.structure_description)) {
+          api.grammar.save({ sentence, analysis: a }).catch(() => {});
+        }
+      })
       .catch(() => setLoading(false));
   }, [sentence]);
 
@@ -38,42 +45,46 @@ export function GrammarPanel({ sentence, onClose }: GrammarPanelProps) {
           <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
             <Loader2 className="h-4 w-4 animate-spin" /> Analyzing...
           </div>
-        ) : analysis ? (
+        ) : analysis && (analysis.sentence_type || analysis.clauses.length > 0 || analysis.structure_description) ? (
           <div className="space-y-4">
-            <div>
-              <span className="text-xs text-gray-400">Sentence Type</span>
-              <span className="ml-2 px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-medium">
-                {analysis.sentence_type}
-              </span>
-            </div>
-
-            <div>
-              <span className="text-xs text-gray-400 block mb-2">Clause Structure</span>
-              <div className="space-y-2">
-                {analysis.clauses.map((clause, i) => (
-                  <div key={i} className="border rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                        clause.type === "main" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
-                      }`}>
-                        {clause.type}
-                      </span>
-                      <span className="text-xs text-gray-500">{clause.function}</span>
-                    </div>
-                    <p className="text-sm text-gray-700 font-medium">{clause.text}</p>
-                    {clause.modifiers.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {clause.modifiers.map((mod, j) => (
-                          <span key={j} className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded text-[10px] border border-yellow-200">
-                            {mod.type}: {mod.text}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {analysis.sentence_type && (
+              <div>
+                <span className="text-xs text-gray-400">Sentence Type</span>
+                <span className="ml-2 px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-medium">
+                  {analysis.sentence_type}
+                </span>
               </div>
-            </div>
+            )}
+
+            {analysis.clauses.length > 0 && (
+              <div>
+                <span className="text-xs text-gray-400 block mb-2">Clause Structure</span>
+                <div className="space-y-2">
+                  {analysis.clauses.map((clause, i) => (
+                    <div key={i} className="border rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          clause.type === "main" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                        }`}>
+                          {clause.type}
+                        </span>
+                        <span className="text-xs text-gray-500">{clause.function}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 font-medium">{clause.text}</p>
+                      {clause.modifiers.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {clause.modifiers.map((mod, j) => (
+                            <span key={j} className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded text-[10px] border border-yellow-200">
+                              {mod.type}: {mod.text}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {analysis.structure_description && (
               <div className="p-3 bg-indigo-50 rounded-lg text-xs text-indigo-700">
