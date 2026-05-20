@@ -22,17 +22,14 @@ function getUserAI(req: AuthRequest): { apiKey?: string; baseURL?: string; enabl
 function mockResponse(operation: string, input: Record<string, unknown>) {
   switch (operation) {
     case "translate_word":
-      return { translation: `${input.word} (翻译示例)`, word_type: "noun", pronunciation: "/.../", affixes: {}, derivatives: [] };
+      return { translation: "AI未配置", word_type: "", pronunciation: "", affixes: {}, example_sentence: { en: "Configure your DeepSeek API key in Settings or .env to enable translation.", zh: "请在设置页面或.env文件中配置DeepSeek API密钥以启用翻译功能。" }, derivatives: [] };
     case "translate_paragraph":
-      return { translation: `[段落翻译示例: ${(input.paragraph as string)?.slice(0, 50)}...]` };
+      return { translation: "AI 翻译功能未配置，请在设置页面添加 DeepSeek API Key。" };
     case "analyze_grammar":
-      return { sentence_type: "complex", clauses: [{ text: input.sentence, type: "main", function: "declarative", modifiers: [] }] };
+      return { sentence_type: "", clauses: [], structure_description: "AI 未配置，请在设置页面或 .env 文件中配置 DeepSeek API Key。" };
     case "generate_exercises":
       return { exercises: [
-        { type: "detail", question: "What is the main topic of this article?", options: ["A", "B", "C", "D"], answer: "A", explanation: "示例解释" },
-        { type: "main_idea", question: "What is the author's main argument?", options: ["A", "B", "C", "D"], answer: "A", explanation: "示例解释" },
-        { type: "cloze", question: "The article discusses ___ important topic.", options: ["an", "a", "the", "no article"], answer: "an", explanation: "元音音素前用 an" },
-        { type: "grammar", question: "The research ___ (conduct) by the team was groundbreaking.", options: ["conducted", "conducting", "conducts", "was conducted"], answer: "conducted", explanation: "过去分词作后置定语" },
+        { type: "detail", question: "AI not configured", options: ["Configure", "DeepSeek", "API", "Key"], answer: "Configure", explanation: "请在设置页面配置API密钥" },
       ] };
     default:
       return {};

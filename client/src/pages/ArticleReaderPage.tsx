@@ -9,7 +9,7 @@ import { ExercisePanel } from "../components/reader/ExercisePanel";
 import { GrammarPanel } from "../components/reader/GrammarPanel";
 import { CommentSection } from "../components/social/CommentSection";
 import type { ParsedContent, ParagraphData } from "../types";
-import { ArrowLeft, FileText, GitBranch, ChevronRight } from "lucide-react";
+import { ArrowLeft, FileText, GitBranch, X } from "lucide-react";
 
 interface TextSelection {
   text: string;
@@ -25,7 +25,7 @@ export function ArticleReaderPage() {
   } | null>(null);
   const [selectedText, setSelectedText] = useState<TextSelection | null>(null);
   const [grammarSentence, setGrammarSentence] = useState<string | null>(null);
-  const [showExercises, setShowExercises] = useState(true);
+  const [showExercises, setShowExercises] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const { data: article, isLoading } = useQuery({
     queryKey: ["article", articleId],
@@ -140,9 +140,9 @@ export function ArticleReaderPage() {
         </div>
       </div>
 
-      <div className="flex gap-6">
+      <div>
         {/* Main reading area */}
-        <div className={`${showExercises ? "w-[60%]" : "w-full max-w-3xl"} transition-all`}>
+        <div className="max-w-3xl">
           <BackgroundCard author={article.author} background={article.background} source={article.source} />
 
           {/* Action toolbar */}
@@ -156,12 +156,13 @@ export function ArticleReaderPage() {
               className="flex items-center gap-1 px-3 py-1.5 text-xs bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium">
               <GitBranch className="h-3.5 w-3.5" /> Select sentence → Analyze
             </button>
-            <button
-              onClick={() => setShowExercises(!showExercises)}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium ml-auto">
-              {showExercises ? "Hide Exercises" : "Show Exercises"}
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showExercises ? "rotate-180" : ""}`} />
-            </button>
+            {!showExercises && (
+              <button
+                onClick={() => setShowExercises(true)}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium ml-auto shadow-sm">
+                Practice Exercises
+              </button>
+            )}
           </div>
 
           {/* Article content */}
@@ -186,14 +187,23 @@ export function ArticleReaderPage() {
             </div>
           </div>
         </div>
-
-        {/* Exercise sidebar */}
-        {showExercises && (
-          <div className="w-[40%] min-w-[340px]">
-            <ExercisePanel articleId={articleId} onScoreUpdate={setScore} />
-          </div>
-        )}
       </div>
+
+      {/* Exercise section — shown below article when toggled */}
+      {showExercises && (
+        <div className="mt-6 max-w-3xl">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-gray-900">Practice Exercises</h2>
+            <button
+              onClick={() => setShowExercises(false)}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="h-3.5 w-3.5" /> Close Exercises
+            </button>
+          </div>
+          <ExercisePanel articleId={articleId} onScoreUpdate={setScore} />
+        </div>
+      )}
 
       {/* Comments section */}
       <div className="mt-6 max-w-3xl">

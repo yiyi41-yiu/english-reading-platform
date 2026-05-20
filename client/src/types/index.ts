@@ -136,6 +136,7 @@ export interface WordTranslation {
   word_type: string;
   pronunciation: string;
   affixes: { prefix: string; root: string; suffix: string };
+  example_sentence?: { en: string; zh: string };
   derivatives: Array<{ word: string; type: string; translation: string }>;
 }
 

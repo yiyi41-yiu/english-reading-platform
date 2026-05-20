@@ -94,6 +94,12 @@ export function WordPopup({ cleanWord, contextSentence, position, onClose, artic
               </div>
             </div>
           )}
+          {data.example_sentence && (
+            <div><span className="text-xs text-gray-400">Example</span>
+              <p className="text-gray-600 text-xs">{data.example_sentence.en}</p>
+              <p className="text-gray-400 text-xs mt-0.5">{data.example_sentence.zh}</p>
+            </div>
+          )}
           {data.derivatives && data.derivatives.length > 0 && (
             <div><span className="text-xs text-gray-400">Derivatives</span>
               <div className="flex flex-wrap gap-1 mt-0.5">

@@ -2,13 +2,26 @@ type PromptInput = Record<string, string | undefined>;
 
 const prompts: Record<string, (input: PromptInput) => string> = {
   translate_word: ({ word, context_sentence }) =>
-    `Translate the English word "${word}" in the context of: "${context_sentence || ""}"
-Return JSON: { "translation": "Chinese translation", "word_type": "noun|verb|adj|adv|prep|...", "pronunciation": "/phonetic/", "affixes": { "prefix": "or empty", "root": "root word", "suffix": "or empty" }, "derivatives": [{"word": "related word", "type": "word type", "translation": "Chinese"}] }`,
+    `You are a professional English-Chinese dictionary. For the word "${word}" in context "${context_sentence || ""}", return accurate and complete data.
+
+Requirements:
+- translation: Natural Chinese translation of the word IN THIS CONTEXT
+- word_type: part of speech (noun/verb/adj/adv/prep/conj/pronoun/etc.)
+- pronunciation: IPA phonetic transcription
+- affixes: break down the word into prefix, root, suffix (use "" if none)
+- example_sentence: Create a NEW example sentence using this word (different from the context), with its Chinese translation
+- derivatives: 2-4 related word forms (plural, tense variations, related words) with their Chinese translations
+
+Return ONLY valid JSON (no markdown, no extra text):
+{ "translation": "中文翻译", "word_type": "...", "pronunciation": "/.../", "affixes": { "prefix": "", "root": "...", "suffix": "" }, "example_sentence": { "en": "English example", "zh": "中文翻译" }, "derivatives": [{"word": "...", "type": "...", "translation": "中文"}] }`,
 
   translate_paragraph: ({ paragraph }) =>
-    `Translate the following English paragraph into natural Chinese. Keep the original paragraph structure and tone.
+    `You are a professional English-Chinese translator. Translate the following English paragraph into natural, fluent Chinese. Preserve the original meaning, tone, and paragraph structure. Use idiomatic Chinese expressions where appropriate.
+
 Paragraph: "${paragraph}"
-Return JSON: { "translation": "Chinese translation" }`,
+
+Return ONLY valid JSON (no markdown, no extra text):
+{ "translation": "地道的中文翻译" }`,
 
   analyze_grammar: ({ sentence }) =>
     `Analyze the grammatical structure of this English sentence: "${sentence}"
