@@ -69,6 +69,7 @@ export interface VocabEntry {
   pronunciation: string | null;
   affixes: string | null; // JSON {prefix, suffix, root}
   derivatives: string | null; // JSON [{word, type, translation}]
+  exampleSentence: string | null; // JSON {en, zh}
   articleId: number | null;
   interval: number;
   easeFactor: number;

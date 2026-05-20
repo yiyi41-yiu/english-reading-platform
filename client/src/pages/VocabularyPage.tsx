@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import type { VocabEntry } from "../types";
 import { useTTS } from "../hooks/useTTS";
-import { Search, Trash2, Volume2, ExternalLink, BookMarked } from "lucide-react";
+import { Search, Trash2, Volume2, ExternalLink, BookMarked, Clock } from "lucide-react";
 
 export function VocabularyPage() {
   const [search, setSearch] = useState("");
@@ -23,6 +23,7 @@ export function VocabularyPage() {
   });
 
   const entries = data?.items || [];
+  const dueCount = entries.filter(e => !e.nextReview || new Date(e.nextReview) <= new Date()).length;
 
   return (
     <div>
@@ -30,7 +31,11 @@ export function VocabularyPage() {
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <BookMarked className="h-6 w-6 text-blue-500" /> My Vocabulary
         </h1>
-        <p className="text-gray-500 text-sm mt-1">Words you've saved while reading</p>
+        <p className="text-gray-500 text-sm mt-1">
+          {entries.length > 0
+            ? `${entries.length} words saved · ${dueCount > 0 ? `${dueCount} due for review` : "all reviewed"}`
+            : "Words you save while reading appear here"}
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
@@ -53,7 +58,7 @@ export function VocabularyPage() {
       ) : entries.length === 0 ? (
         <div className="text-center py-16">
           <BookMarked className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">{search ? "No matching words" : "No saved words yet. Start reading and save words!"}</p>
+          <p className="text-gray-500">{search ? "No matching words" : "No saved words yet. Start reading and click words to save them!"}</p>
           {!search && <Link to="/" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Browse articles</Link>}
         </div>
       ) : (
@@ -70,41 +75,79 @@ export function VocabularyPage() {
 function VocabCard({ entry, onSpeak, onDelete }: { entry: VocabEntry; onSpeak: () => void; onDelete: () => void }) {
   const affixes = entry.affixes ? JSON.parse(entry.affixes) : null;
   const derivatives: Array<{ word: string; type: string; translation: string }> = entry.derivatives ? JSON.parse(entry.derivatives) : [];
+  const exampleSentence: { en: string; zh: string } | null = entry.exampleSentence ? JSON.parse(entry.exampleSentence) : null;
+  const isDue = !entry.nextReview || new Date(entry.nextReview) <= new Date();
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors">
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
+        <div className="flex-1 min-w-0">
+          {/* Word header */}
+          <div className="flex items-center gap-2 mb-2">
             <span className="text-lg font-bold text-gray-900">{entry.word}</span>
             {entry.pronunciation && <span className="text-sm text-gray-400 font-mono">{entry.pronunciation}</span>}
             <button onClick={onSpeak} className="p-1 hover:bg-gray-100 rounded">
               <Volume2 className="h-3.5 w-3.5 text-gray-400 hover:text-blue-500" />
             </button>
             {entry.wordType && (
-              <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{entry.wordType}</span>
+              <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">{entry.wordType}</span>
+            )}
+            {isDue && entry.repetitions > 0 && (
+              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-[10px]">
+                <Clock className="h-3 w-3" /> Due
+              </span>
             )}
           </div>
-          <p className="text-sm text-gray-600">{entry.translation}</p>
 
+          {/* Translation */}
+          <p className="text-sm text-gray-700 font-medium mb-2">{entry.translation}</p>
+
+          {/* Affixes */}
           {affixes && (affixes.prefix || affixes.root || affixes.suffix) && (
-            <div className="flex items-center gap-1 mt-1.5">
-              {affixes.prefix && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px]">prefix: {affixes.prefix}</span>}
+            <div className="flex items-center flex-wrap gap-1 mb-1.5">
+              <span className="text-[10px] text-gray-400">structure:</span>
+              {affixes.prefix && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px]">pre: {affixes.prefix}</span>}
               {affixes.root && <span className="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[10px]">root: {affixes.root}</span>}
-              {affixes.suffix && <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[10px]">suffix: {affixes.suffix}</span>}
+              {affixes.suffix && <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[10px]">suf: {affixes.suffix}</span>}
             </div>
           )}
 
+          {/* Example sentence */}
+          {exampleSentence && (
+            <div className="mb-1.5 p-2 bg-gray-50 rounded-lg border-l-2 border-blue-200">
+              <p className="text-xs text-gray-600 italic">{exampleSentence.en}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{exampleSentence.zh}</p>
+            </div>
+          )}
+
+          {/* Derivatives */}
           {derivatives.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
+            <div className="flex flex-wrap gap-1 mb-1.5">
+              <span className="text-[10px] text-gray-400">derivatives:</span>
               {derivatives.map((d, i) => (
-                <span key={i} className="text-[10px] text-gray-500">{d.word} ({d.type}) {d.translation}{i < derivatives.length - 1 ? "," : ""}</span>
+                <span key={i} className="text-[10px] text-gray-600 bg-gray-50 px-1 py-0.5 rounded">
+                  {d.word} <span className="text-gray-400">({d.type})</span> {d.translation}
+                </span>
               ))}
+            </div>
+          )}
+
+          {/* Review schedule */}
+          {entry.repetitions > 0 && (
+            <div className="flex items-center gap-3 text-[10px] text-gray-400 mt-1 pt-2 border-t border-gray-100">
+              <span>Reviewed {entry.repetitions}x</span>
+              <span>Interval {entry.interval}d</span>
+              <span>Ease {entry.easeFactor.toFixed(1)}</span>
+              {entry.nextReview && (
+                <span className={isDue ? "text-red-500 font-medium" : "text-gray-400"}>
+                  {isDue ? "Due now!" : `Next: ${new Date(entry.nextReview).toLocaleDateString()}`}
+                </span>
+              )}
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-2 ml-3">
+        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
           {entry.articleId && (
             <Link to={`/article/${entry.articleId}`} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-blue-500" title="Jump to article">
               <ExternalLink className="h-4 w-4" />

@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { db, schema } from "../db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, teacherOnly, AuthRequest } from "../middleware/auth";
+import { addXP } from "./pet";
 
 export const progressRouter = Router();
 
@@ -22,6 +23,10 @@ progressRouter.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
         eq(schema.readingProgress.userId, req.userId!),
         eq(schema.readingProgress.articleId, article_id)
       )).returning().get();
+    // Pet XP: completing article
+    if (completed) {
+      try { addXP(req.userId!, 15); } catch {}
+    }
     return res.json(updated);
   }
 
@@ -31,6 +36,9 @@ progressRouter.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
     completed: completed ? 1 : 0,
     readAt: new Date().toISOString(),
   }).returning().get();
+
+  // Pet XP: reading article +10, completing +15 extra
+  try { addXP(req.userId!, completed ? 25 : 10); } catch {}
 
   return res.status(201).json(progress);
 });

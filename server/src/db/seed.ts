@@ -165,6 +165,7 @@ sqlite.exec(`
   addColumn("users", "api_key", "TEXT");
   addColumn("users", "api_provider", "TEXT");
   addColumn("articles", "source_type", "TEXT NOT NULL DEFAULT 'seed'");
+  addColumn("vocabulary", "example_sentence", "TEXT");
   // pets table: create if missing
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS pets (

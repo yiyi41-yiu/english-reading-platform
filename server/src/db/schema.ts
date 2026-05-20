@@ -37,6 +37,7 @@ export const vocabulary = sqliteTable("vocabulary", {
   pronunciation: text("pronunciation"),
   affixes: text("affixes"), // JSON: {prefix, suffix, root}
   derivatives: text("derivatives"), // JSON: [{word, type, translation}]
+  exampleSentence: text("example_sentence"), // JSON: {en, zh}
   articleId: integer("article_id").references(() => articles.id, { onDelete: "set null" }),
   interval: real("interval").notNull().default(0),       // Current interval in days
   easeFactor: real("ease_factor").notNull().default(2.5), // SM-2 ease factor

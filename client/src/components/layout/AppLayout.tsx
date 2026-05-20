@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
-import { BookOpen, BookMarked, GraduationCap, LogOut, Home, Quote, Trophy, TrendingUp, Brain, Settings, Users, XCircle } from "lucide-react";
+import { BookOpen, BookMarked, GraduationCap, LogOut, Home, Quote, Trophy, TrendingUp, Brain, Settings, Users, XCircle, GitBranch } from "lucide-react";
 
 export function AppLayout() {
   const { user, logout } = useAuthStore();
@@ -27,8 +27,11 @@ export function AppLayout() {
             <NavLink to="/vocabulary" className={({ isActive }) => `flex items-center gap-1.5 text-sm ${isActive ? "text-blue-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>
               <BookMarked className="h-4 w-4" /> Vocabulary
             </NavLink>
-            <NavLink to="/review" className={({ isActive }) => `flex items-center gap-1.5 text-sm ${isActive ? "text-blue-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>
+            <NavLink to="/review" className={({ isActive }) => `flex items-center gap-1.5 text-sm ${isActive ? "text-purple-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>
               <Brain className="h-4 w-4" /> Review
+            </NavLink>
+            <NavLink to="/grammar" className={({ isActive }) => `flex items-center gap-1.5 text-sm ${isActive ? "text-purple-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>
+              <GitBranch className="h-4 w-4" /> Grammar
             </NavLink>
             <NavLink to="/wrong-answers" className={({ isActive }) => `flex items-center gap-1.5 text-sm ${isActive ? "text-red-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>
               <XCircle className="h-4 w-4" /> Wrong Answers

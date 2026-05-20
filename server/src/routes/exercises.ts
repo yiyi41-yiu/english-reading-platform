@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { db, schema } from "../db";
 import { eq, and } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { addXP, updateHappiness } from "./pet";
 
 export const exercisesRouter = Router();
 
@@ -65,6 +66,12 @@ exercisesRouter.post("/:exerciseId/submit", authMiddleware, (req: AuthRequest, r
       grammarAnalysis = exercise.explanation;
     }
   }
+
+  // Pet: correct = +5 XP, wrong = -5 happiness
+  try {
+    if (isCorrect) addXP(req.userId!, 5);
+    else updateHappiness(req.userId!, -5);
+  } catch {}
 
   return res.json({
     id: attempt.id,

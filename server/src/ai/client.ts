@@ -14,9 +14,15 @@ function getDefaultClient(): OpenAI {
 
 const userClients = new Map<string, OpenAI>();
 
+function resolveBaseURL(raw?: string): string {
+  if (!raw || raw === "deepseek" || raw === "https://api.deepseek.com") return "https://api.deepseek.com";
+  if (raw === "openai") return "https://api.openai.com/v1";
+  return raw; // custom URL
+}
+
 export function getAIClient(apiKey?: string, baseURL?: string): OpenAI {
   if (!apiKey) return getDefaultClient();
-  const resolvedBaseURL = baseURL || "https://api.deepseek.com";
+  const resolvedBaseURL = resolveBaseURL(baseURL);
   const cacheKey = `${apiKey}:${resolvedBaseURL}`;
   if (!userClients.has(cacheKey)) {
     userClients.set(cacheKey, new OpenAI({ apiKey, baseURL: resolvedBaseURL }));

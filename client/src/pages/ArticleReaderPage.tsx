@@ -10,6 +10,8 @@ import { GrammarPanel } from "../components/reader/GrammarPanel";
 import { CommentSection } from "../components/social/CommentSection";
 import type { ParsedContent, ParagraphData } from "../types";
 import { ArrowLeft, FileText, GitBranch, X } from "lucide-react";
+import { PetFloating } from "../components/pet/PetDisplay";
+import { usePetStore } from "../stores/petStore";
 
 interface TextSelection {
   text: string;
@@ -27,15 +29,16 @@ export function ArticleReaderPage() {
   const [grammarSentence, setGrammarSentence] = useState<string | null>(null);
   const [showExercises, setShowExercises] = useState(false);
   const [score, setScore] = useState<number | null>(null);
+  const fetchPet = usePetStore(s => s.fetch);
   const { data: article, isLoading } = useQuery({
     queryKey: ["article", articleId],
     queryFn: () => api.articles.get(articleId),
   });
 
-  // Mark as reading
+  // Mark as reading (+10 XP server-side)
   useEffect(() => {
     if (articleId) {
-      api.progress.update(articleId, false).catch(() => {});
+      api.progress.update(articleId, false).then(() => fetchPet()).catch(() => {});
     }
   }, [articleId]);
 
@@ -76,6 +79,7 @@ export function ArticleReaderPage() {
 
   const handleMarkComplete = async () => {
     await api.progress.update(articleId, true);
+    await fetchPet(); // refresh pet after XP award
     window.location.reload();
   };
 
@@ -147,6 +151,7 @@ export function ArticleReaderPage() {
 
           {/* Action toolbar */}
           <div className="flex items-center gap-2 my-4">
+            <PetFloating />
             <button onClick={handleMarkComplete}
               className="flex items-center gap-1 px-3 py-1.5 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors font-medium">
               <FileText className="h-3.5 w-3.5" /> Mark as complete

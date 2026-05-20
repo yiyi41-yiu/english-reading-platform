@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { db, schema } from "../db";
 import { eq, and, like } from "drizzle-orm";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { addXP } from "./pet";
 
 export const vocabularyRouter = Router();
 
@@ -25,7 +26,7 @@ vocabularyRouter.get("/", authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 vocabularyRouter.post("/", authMiddleware, (req: AuthRequest, res: Response) => {
-  const { word, translation, word_type, pronunciation, affixes, derivatives, article_id } = req.body;
+  const { word, translation, word_type, pronunciation, affixes, derivatives, example_sentence, article_id } = req.body;
   if (!word || !translation) {
     return res.status(400).json({ error: "Word and translation are required" });
   }
@@ -44,8 +45,12 @@ vocabularyRouter.post("/", authMiddleware, (req: AuthRequest, res: Response) => 
     pronunciation: pronunciation || null,
     affixes: affixes ? JSON.stringify(affixes) : null,
     derivatives: derivatives ? JSON.stringify(derivatives) : null,
+    exampleSentence: example_sentence ? JSON.stringify(example_sentence) : null,
     articleId: article_id || null,
   }).returning().get();
+
+  // Pet XP: saving vocabulary
+  try { addXP(req.userId!, 3); } catch {}
 
   return res.status(201).json(entry);
 });
@@ -143,6 +148,9 @@ vocabularyRouter.post("/review/:id", authMiddleware, (req: AuthRequest, res: Res
     .where(eq(schema.vocabulary.id, entry.id))
     .returning()
     .get();
+
+  // Pet XP: reviewing vocabulary
+  try { addXP(req.userId!, 2); } catch {}
 
   return res.json(updated);
 });

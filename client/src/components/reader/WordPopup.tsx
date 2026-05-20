@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useTTS } from "../../hooks/useTTS";
 import type { WordTranslation } from "../../types";
@@ -45,6 +46,7 @@ export function WordPopup({ cleanWord, contextSentence, position, onClose, artic
         pronunciation: data.pronunciation,
         affixes: data.affixes,
         derivatives: data.derivatives,
+        example_sentence: data.example_sentence,
         article_id: articleId,
       });
       setSaved(true);
@@ -115,6 +117,15 @@ export function WordPopup({ cleanWord, contextSentence, position, onClose, artic
             {saved ? "Saved!" : saving ? "Saving..." : "Save to vocabulary"}
           </button>
         </div>
+      ) : data ? (
+        data.translation === "API调用失败" || data.translation === "AI未配置" ? (
+          <div className="space-y-2 text-sm">
+            <p className="text-orange-600 bg-orange-50 p-2 rounded text-xs">{data.example_sentence?.zh || data.translation}</p>
+            <Link to="/settings" className="inline-block text-xs text-blue-600 hover:underline font-medium">Go to Settings →</Link>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">Could not load translation</p>
+        )
       ) : (
         <p className="text-sm text-gray-400">Could not load translation</p>
       )}

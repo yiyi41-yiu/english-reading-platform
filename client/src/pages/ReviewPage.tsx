@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useTTS } from "../hooks/useTTS";
-import { Brain, Volume2, CheckCircle2, ArrowRight, BookMarked, RefreshCw, BarChart3, Star } from "lucide-react";
+import { Brain, Volume2, CheckCircle2, ArrowRight, BookMarked, RefreshCw, BarChart3, Star, HelpCircle, Eye, EyeOff } from "lucide-react";
 
 const QUALITY_LABELS: Record<number, { label: string; color: string; desc: string }> = {
   0: { label: "Blackout", color: "bg-red-500 hover:bg-red-600", desc: "Complete blackout" },
@@ -22,6 +22,7 @@ export function ReviewPage() {
   const [screen, setScreen] = useState<Screen>("loading");
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [session, setSession] = useState<{ reviewed: number; ratings: number[] }>({ reviewed: 0, ratings: [] });
 
   const { data, isLoading } = useQuery({
@@ -90,25 +91,34 @@ export function ReviewPage() {
           <p className="text-gray-500 text-sm mt-1">Spaced repetition practice</p>
         </div>
         <div className="text-center py-16">
-          <CheckCircle2 className="h-12 w-12 text-green-400 mx-auto mb-3" />
-          <p className="text-gray-900 font-medium text-lg mb-1">All caught up!</p>
-          <p className="text-gray-500 mb-4">
-            {data && data.totalWords > 0
-              ? `You've mastered ${data.mastered} of ${data.totalWords} words. No words due for review.`
-              : "Save some words while reading to start reviewing."}
-          </p>
-          {data && data.totalWords > 0 && (
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="h-2 bg-gray-200 rounded-full w-40 overflow-hidden">
-                <div className="h-full bg-green-400 rounded-full" style={{ width: `${(data.mastered / data.totalWords) * 100}%` }} />
+          {data && data.totalWords > 0 ? (
+            <>
+              <CheckCircle2 className="h-12 w-12 text-green-400 mx-auto mb-3" />
+              <p className="text-gray-900 font-medium text-lg mb-1">All caught up!</p>
+              <p className="text-gray-500 mb-4">You've reviewed {data.mastered} of {data.totalWords} words. No words due right now.</p>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="h-2 bg-gray-200 rounded-full w-40 overflow-hidden">
+                  <div className="h-full bg-green-400 rounded-full" style={{ width: `${Math.round((data.mastered / data.totalWords) * 100)}%` }} />
+                </div>
+                <span className="text-xs text-gray-500">{Math.round((data.mastered / data.totalWords) * 100)}% mastered</span>
               </div>
-              <span className="text-xs text-gray-500">{Math.round((data.mastered / data.totalWords) * 100)}% mastered</span>
-            </div>
-          )}
-          {(!data || data.totalWords === 0) ? (
-            <Link to="/" className="text-blue-600 hover:underline text-sm">Browse articles</Link>
+              <Link to="/vocabulary" className="text-blue-600 hover:underline text-sm">View all vocabulary</Link>
+            </>
           ) : (
-            <Link to="/vocabulary" className="text-blue-600 hover:underline text-sm">View all vocabulary</Link>
+            <>
+              <BookMarked className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-900 font-medium text-lg mb-1">No words to review yet</p>
+              <p className="text-gray-500 mb-2">Here's how to get started:</p>
+              <div className="max-w-sm mx-auto text-left text-sm text-gray-600 space-y-1.5 mb-4">
+                <p><span className="font-medium">1.</span> Open any reading article</p>
+                <p><span className="font-medium">2.</span> Click on a word you don't know</p>
+                <p><span className="font-medium">3.</span> Click "Save to vocabulary"</p>
+                <p><span className="font-medium">4.</span> Come back here to review!</p>
+              </div>
+              <Link to="/" className="inline-flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700">
+                <BookMarked className="h-4 w-4" /> Browse articles
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -165,10 +175,32 @@ export function ReviewPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Brain className="h-6 w-6 text-purple-500" /> Vocabulary Review
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Brain className="h-6 w-6 text-purple-500" /> Vocabulary Review
+          </h1>
+          <button onClick={() => setShowHelp(!showHelp)}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-purple-600 transition-colors">
+            <HelpCircle className="h-4 w-4" />
+            {showHelp ? "Hide guide" : "How to use"}
+          </button>
+        </div>
         <p className="text-gray-500 text-sm mt-1">Spaced repetition practice</p>
+
+        {showHelp && (
+          <div className="mt-3 bg-purple-50 border border-purple-100 rounded-xl p-4 text-sm">
+            <h3 className="font-semibold text-purple-800 mb-2">How it works</h3>
+            <ol className="space-y-1.5 text-purple-700 text-xs leading-relaxed">
+              <li><span className="font-medium">1. See the word</span> — Read it and try to recall the translation in your mind.</li>
+              <li><span className="font-medium">2. Tap to reveal</span> — Click the card to reveal the translation and knowledge points.</li>
+              <li><span className="font-medium">3. Rate your recall</span> — Choose how well you remembered (0 = forgot / 5 = perfect).</li>
+              <li><span className="font-medium">4. Smart scheduling</span> — Words you know well appear less often. Difficult words repeat more.</li>
+            </ol>
+            <p className="mt-2 text-xs text-purple-500">
+              This uses the SM-2 spaced repetition algorithm. Review daily for best results!
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Progress bar */}

@@ -20,6 +20,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { ArticleImportPage } from "./pages/ArticleImportPage";
 import { WrongAnswersPage } from "./pages/WrongAnswersPage";
 import { CommunityPage } from "./pages/CommunityPage";
+import { GrammarPage } from "./pages/GrammarPage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="import" element={<ProtectedRoute><ArticleImportPage /></ProtectedRoute>} />
         <Route path="wrong-answers" element={<ProtectedRoute><WrongAnswersPage /></ProtectedRoute>} />
         <Route path="community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+        <Route path="grammar" element={<ProtectedRoute><GrammarPage /></ProtectedRoute>} />
         <Route path="teacher" element={<ProtectedRoute teacherOnly><TeacherDashboardPage /></ProtectedRoute>} />
         <Route path="teacher/article/new" element={<ProtectedRoute teacherOnly><TeacherArticleNewPage /></ProtectedRoute>} />
         <Route path="teacher/article/:id/exercises" element={<ProtectedRoute teacherOnly><TeacherExercisesPage /></ProtectedRoute>} />
