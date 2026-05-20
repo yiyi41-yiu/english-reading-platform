@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-bundle/
+dist-exe/
+data/
+*.db
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
